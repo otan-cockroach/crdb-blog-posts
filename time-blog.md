@@ -35,15 +35,14 @@ with `CURRENT_TIMESTAMP`, which returns the current timestamp in the default
 session time zone:
 
 ```
-# Using a PG shell, we can see Australia/Sydney time by default.
-
+otan=# -- Using a PG shell, we can see Australia/Sydney time by default.
 otan=# show time zone;
      TimeZone
 ------------------
  Australia/Sydney
 (1 row)
 
-otan=# select current_timestamp;
+otan=# select CURRENT_TIMESTAMP;
        current_timestamp
 -------------------------------
  2023-03-16 16:35:20.703644+11
@@ -175,13 +174,13 @@ hence now displaying `2023-03-16 02:44:53.614697-03`.
 If you're still confused, don't worry — it's confusing to us too. Here's how
 we think about it:
 
-* **TIMESTAMP is an absolute value time offset**. It does not store time zones, or
-change based on the session time zone. Another way to think about it is that it
-is always an absolute time, or "always UTC".
-* **TIMESTAMPTZ is also an absolute value time offset with no time zone metadata
-set**. Instead, **it displays timestamps and performs operations in the session time
-zone**. You've seen the "displays timestamp" bit already — we'll get to the
-"performs operations" component later.
+* **TIMESTAMP is just a date and time - nothing else**. It does not store or
+  behave like differently depending on the session time zone. It may help to
+  conceptualise it as "behaving like a UTC timestamp".
+* **TIMESTAMPTZ stores date and time, but it displays timestamps and performs
+  operations based on the session time zone**. You've seen the "displays
+  timestamp" bit already — we'll get to the "performs operations" component
+  later.
 
 ### Parsing
 Let's parse the opening ceremony of the [Sydney
@@ -639,12 +638,13 @@ otan=# SELECT '1947-12-13 13:00+11'::TIMESTAMPTZ AT TIME ZONE 'UTC+3';
 
 ### What do we recommend?
 
-Like many others, CockroachDB recommends usage of TIMESTAMPTZ as encoding time
-zone data is valuable. However, we recommend always setting the session time
-zone to UTC. This allows the user to not worry about not losing time zone
-information whilst parsing, whilst allaying concerns that if a user decides to
-use session time zones that they perform with intended daylight-savings aware
-behaviour.
+Like others, CockroachDB recommends usage of TIMESTAMPTZ as being to operate in
+the correct timezone and parsing timezone fields is valuable.
+
+However, we recommend always setting the session time zone to UTC. This allows
+the user to not worry about not losing time zone information whilst parsing,
+whilst allaying concerns that if a user decides to use session time zones that
+they perform with intended daylight-savings aware behaviour.
 
 ### Time Twister
 
@@ -937,11 +937,12 @@ that information.
 
 Each of the time types have interesting nuances:
 
-* TIMESTAMP is a type with date and time that has no time zone information and is
-absolute. Alternatively, think of it as "always UTC time".
+* TIMESTAMP is a type with date and time that has no time zone information.
+  Behaviour does not changed based on the session time zone.
 * TIMESTAMPTZ is a type with date and time that has time zone behaviour dependent
-on your session time zone and is conscious of daylight savings. It never persists
-time zone initialized with it. If you want to be safe, always use UTC with it.
+on your session time zone and  is conscious of daylight savings). It never
+persists time zone initialized with it. If you want to be safe, always use UTC
+with it.
 * TIME is a type with time of day info only.
 * TIMETZ is a type with time of day and fixed time zone offsets. It does not
 depend on the session time zone for computation, and is not daylight savings

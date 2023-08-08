@@ -177,10 +177,10 @@ we think about it:
 * **TIMESTAMP is just a date and time - nothing else**. It does not store or
   behave like differently depending on the session time zone. It may help to
   conceptualise it as "behaving like a UTC timestamp".
-* **TIMESTAMPTZ stores date and time, but it displays timestamps and performs
-  operations based on the session time zone**. You've seen the "displays
-  timestamp" bit already — we'll get to the "performs operations" component
-  later.
+* **TIMESTAMPTZ is also just a date and time, but it displays timestamps and performs
+  operations based on the session time zone.** Despite it's name, it does _not_
+  store timezones.  You've seen the "displays timestamp" bit already — we'll
+  get to the "performs operations" component later.
 
 ### Parsing
 Let's parse the opening ceremony of the [Sydney
@@ -505,7 +505,7 @@ From the above:
 * Case 2: we have a TIMESTAMP which we wish to convert to Sydney time. This is straightforward -
   add the UTC offset to the time, which when we display in the session time zone of
   `Australia/Sydney` will still be 10am.
-* Case 3: Case 3 gets interesting. We've added the `Asia/Tokyo` time zone offset to the underlying offset,
+* Case 3: We've `AT TIME ZONE`d the `Asia/Tokyo` time zone offset to the underlying offset,
   but remember we display this offset at the session time zone. With the two-hour time difference, that means we see
   12pm in the afternoon when displaying this operation with a session time zone of Australia/Sydney.
 
@@ -531,13 +531,14 @@ otan=# select '2011-03-14 10:00:00'::TIMESTAMP AT TIME ZONE '+3';
 We would expect the above case to be `2011-03-14 10:00:00+03:00` if it were
 ISO8601 when using AT TIME ZONE. However, as `+3` is POSIX for AT TIME ZONE, it
 really means "at time zone 3 hours **west** of GMT", to be displayed as "3 hours
-**east** of UTC", hence adding 6 hours to the result.
+**east** of UTC" - and since we have a session timezone of `+3`, we add 6 hours
+to `10:00:00`.
 
 ### Daylight Savings
 Now you may be wondering when to use a location versus when to use an absolute
 offset. Offsets already seem tricky given how it uses POSIX style offsets.
 
-This may help you decide — **word locations can infer changing time zone information**.
+This may help you decide — **world locations can infer changing time zone information**.
 Let's look at a dates which traverse time zones in Chicago:
 
 ```

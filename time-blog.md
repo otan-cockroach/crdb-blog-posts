@@ -179,7 +179,8 @@ we think about it:
   conceptualise it as "behaving like a UTC timestamp".
 * **TIMESTAMPTZ is also just a date and time, but it displays timestamps and performs
   operations based on the session time zone.** Despite it's name, it does _not_
-  store timezones.  You've seen the "displays timestamp" bit already — we'll
+  store timezones - you can conceptualise this as being a "UTC offset" underneath.
+  You've seen the "displays timestamp" bit already — we'll
   get to the "performs operations" component later.
 
 ### Parsing
@@ -217,8 +218,8 @@ As we see above:
 zone offset. This can be significant for us as `19:00-07` is different to the
 value it is stored as — `19:00+00`.
 * For TIMESTAMPTZ, we've got `01:00`, which looks way off. Remember — TIMESTAMPTZ
-is a UTC offset, which displays in the session time zone. We've parsed
-TIMESTAMPTZ with `+11:00` (which is parsed as ISO8601 format unlike SET TIME
+is a "UTC offset", which displays in the session time zone. We've parsed
+TIMESTAMPTZ with `+11:00 (which is parsed as ISO8601 format unlike SET TIME
 ZONE) but we are displaying TIMESTAMPTZ in the time zone`-07:00` as we have set
 the TIME ZONE to be in California. With an 18 hour time difference, that places
 the opening ceremony at 1am local time in California, as you can see from the
